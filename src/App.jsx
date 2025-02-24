@@ -123,7 +123,19 @@ const App = () => {
     const context = canvas.getContext('2d');
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
+    
+    // If using front camera, flip the context horizontally before drawing
+    if (isFrontCamera) {
+        context.scale(-1, 1);
+        context.translate(-canvas.width, 0);
+    }
+    
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Reset transformation if we flipped it
+    if (isFrontCamera) {
+        context.setTransform(1, 0, 0, 1, 0, 0);
+    }
     
     // Apply selected filter
     applyFilter(context, canvas, selectedFilter);
@@ -330,7 +342,9 @@ const App = () => {
                 id="camera-stream"
                 autoPlay
                 playsInline
-                className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
+                className={`absolute top-0 left-0 w-full h-full object-cover rounded-xl ${
+                    isFrontCamera ? 'scale-x-[-1]' : ''
+                }`}
               />
               
               {/* Camera Switch Button */}
