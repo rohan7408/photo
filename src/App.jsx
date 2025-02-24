@@ -268,7 +268,7 @@ const App = () => {
 
           {/* Camera Container */}
           <div className="bg-gray-50 rounded-3xl p-3 md:p-4">
-            <div className="relative w-full pt-[100%] md:pt-[75%] bg-gray-100 rounded-2xl overflow-hidden max-w-xl mx-auto">
+            <div className="relative w-full pt-[130%] sm:pt-[120%] md:pt-[75%] bg-gray-100 rounded-2xl overflow-hidden max-w-xl mx-auto">
               <video
                 id="camera-stream"
                 autoPlay
