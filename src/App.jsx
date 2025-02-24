@@ -15,16 +15,36 @@ const App = () => {
   const [message, setMessage] = React.useState(null);
   const [photos, setPhotos] = React.useState([]);
   const [selectedFilter, setSelectedFilter] = React.useState('normal');
+  const [isFrontCamera, setIsFrontCamera] = React.useState(true);
 
-  const startCamera = async () => {
+  const startCamera = React.useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: isFrontCamera ? "user" : "environment"
+        } 
+      });
       const videoElement = document.getElementById('camera-stream');
+      if (videoElement.srcObject) {
+        // Stop all tracks of the existing stream
+        videoElement.srcObject.getTracks().forEach(track => track.stop());
+      }
       videoElement.srcObject = stream;
     } catch (error) {
       console.error('Error accessing camera:', error);
     }
+  }, [isFrontCamera]);
+
+  const switchCamera = async () => {
+    setIsFrontCamera(!isFrontCamera);
+    await startCamera();
   };
+
+  React.useEffect(() => {
+    if (document.getElementById('camera-stream').srcObject) {
+      startCamera();
+    }
+  }, [isFrontCamera, startCamera]);
 
   const applyFilter = (context, canvas, filter) => {
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
@@ -275,6 +295,29 @@ const App = () => {
                 playsInline
                 className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
               />
+              
+              {/* Camera Switch Button */}
+              <button
+                onClick={switchCamera}
+                className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full 
+                  transition-all transform hover:scale-105 md:hidden" // Hide on desktop
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  fill="none" 
+                  viewBox="0 0 24 24" 
+                  strokeWidth={1.5} 
+                  stroke="currentColor" 
+                  className="w-6 h-6"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" 
+                  />
+                </svg>
+              </button>
+
               {/* Photo Number Indicator */}
               {isCapturing && (
                 <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-bold z-10">
