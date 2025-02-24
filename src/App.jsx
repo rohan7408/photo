@@ -19,25 +19,62 @@ const App = () => {
 
   const startCamera = React.useCallback(async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: isFrontCamera ? "user" : "environment"
-        } 
-      });
+      // First stop any existing stream
       const videoElement = document.getElementById('camera-stream');
       if (videoElement.srcObject) {
-        // Stop all tracks of the existing stream
         videoElement.srcObject.getTracks().forEach(track => track.stop());
       }
-      videoElement.srcObject = stream;
+
+      // Try to get the camera with specific constraints
+      const constraints = {
+        video: {
+          facingMode: isFrontCamera ? 'user' : { exact: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = stream;
+      } catch (error) {
+        // If exact 'environment' fails, try without 'exact'
+        console.log('Trying fallback camera options...', error.message);
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: isFrontCamera ? 'user' : 'environment',
+            width: { ideal: 1920 },
+            height: { ideal: 1080 }
+          }
+        });
+        videoElement.srcObject = fallbackStream;
+      }
     } catch (error) {
       console.error('Error accessing camera:', error);
+      // Try one last time with basic constraints
+      try {
+        const basicStream = await navigator.mediaDevices.getUserMedia({ 
+          video: true 
+        });
+        const videoElement = document.getElementById('camera-stream');
+        videoElement.srcObject = basicStream;
+      } catch (finalError) {
+        console.error('Final camera error:', finalError);
+      }
     }
   }, [isFrontCamera]);
 
   const switchCamera = async () => {
-    setIsFrontCamera(!isFrontCamera);
-    await startCamera();
+    try {
+      // Stop current stream before switching
+      const videoElement = document.getElementById('camera-stream');
+      if (videoElement.srcObject) {
+        videoElement.srcObject.getTracks().forEach(track => track.stop());
+      }
+      setIsFrontCamera(!isFrontCamera);
+    } catch (error) {
+      console.error('Error switching camera:', error);
+    }
   };
 
   React.useEffect(() => {
