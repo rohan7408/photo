@@ -227,236 +227,110 @@ const App = () => {
     };
   }, []);
 
-  const containerStyle = {
-    padding: '30px',
-    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)',
-    minHeight: '100vh'
-  };
-
-  const mainContentStyle = {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'flex',
-    gap: '30px',
-    position: 'relative'
-  };
-
-  const cameraSectionStyle = {
-    flex: '1',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '25px',
-    backgroundColor: 'white',
-    padding: '25px',
-    borderRadius: '30px',
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.08)'
-  };
-
-  const filterContainerStyle = {
-    display: 'flex',
-    gap: '12px',
-    justifyContent: 'center',
-    padding: '10px',
-    backgroundColor: '#f8f9fa',
-    borderRadius: '20px',
-    marginBottom: '5px'
-  };
-
-  const cameraContainerStyle = {
-    width: '100%',
-    borderRadius: '25px',
-    overflow: 'hidden',
-    backgroundColor: '#f8f9fa',
-    padding: '15px'
-  };
-
-  const buttonContainerStyle = {
-    display: 'flex',
-    gap: '15px',
-    justifyContent: 'center',
-    padding: '10px'
-  };
-
-  const photosSectionStyle = {
-    width: '320px',
-    backgroundColor: 'white',
-    borderRadius: '30px',
-    padding: '25px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-    height: 'fit-content',
-    boxShadow: '0 10px 20px rgba(0, 0, 0, 0.08)'
-  };
-
-  const buttonStyle = {
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    padding: '14px 28px',
-    borderRadius: '25px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: '600',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.3s ease',
-    ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 6px 8px rgba(0, 0, 0, 0.15)'
-    },
-    ':disabled': {
-      opacity: 0.7,
-      cursor: 'not-allowed',
-      transform: 'none'
-    }
-  };
-
-  const filterButtonStyle = {
-    color: 'white',
-    border: 'none',
-    padding: '10px 20px',
-    borderRadius: '15px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-    ':hover': {
-      transform: 'translateY(-1px)',
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.15)'
-    }
-  };
-
   return (
-    <div style={containerStyle}>
-      <div style={mainContentStyle}>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6">
         {/* Left side - Camera Section */}
-        <div style={cameraSectionStyle}>
+        <div className="flex-1 bg-white rounded-3xl shadow-lg p-4 md:p-6 flex flex-col gap-4 md:gap-6 md:max-w-2xl mx-auto">
           {/* Filter Selection */}
-          <div style={filterContainerStyle}>
+          <div className="flex flex-wrap justify-center gap-2 p-3 bg-gray-50 rounded-2xl">
             <button 
               onClick={() => setSelectedFilter('normal')}
-              style={{
-                ...filterButtonStyle,
-                backgroundColor: selectedFilter === 'normal' ? '#4CAF50' : '#95a5a6'
-              }}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                selectedFilter === 'normal' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
             >
               Normal
             </button>
             <button 
               onClick={() => setSelectedFilter('bw')}
-              style={{
-                ...filterButtonStyle,
-                backgroundColor: selectedFilter === 'bw' ? '#2c3e50' : '#95a5a6'
-              }}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                selectedFilter === 'bw' 
+                ? 'bg-gray-800 text-white' 
+                : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
             >
               B&W
             </button>
             <button 
               onClick={() => setSelectedFilter('retro')}
-              style={{
-                ...filterButtonStyle,
-                backgroundColor: selectedFilter === 'retro' ? '#e67e22' : '#95a5a6'
-              }}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                selectedFilter === 'retro' 
+                ? 'bg-orange-500 text-white' 
+                : 'bg-gray-400 text-white hover:bg-gray-500'
+              }`}
             >
               Retro
             </button>
           </div>
 
-          <div style={cameraContainerStyle}>
-            <div style={{
-              position: 'relative',
-              width: '100%',
-              paddingTop: '75%',
-              backgroundColor: '#edf2f7',
-              borderRadius: '20px',
-            }}>
+          {/* Camera Container */}
+          <div className="bg-gray-50 rounded-3xl p-3 md:p-4">
+            <div className="relative w-full pt-[75%] bg-gray-100 rounded-2xl overflow-hidden max-w-xl mx-auto">
               <video
                 id="camera-stream"
                 autoPlay
                 playsInline
-                style={{ 
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  borderRadius: '15px',
-                  objectFit: 'cover'
-                }}
+                className="absolute top-0 left-0 w-full h-full object-cover rounded-xl"
               />
               {/* Photo Number Indicator */}
               {isCapturing && (
-                <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  left: '20px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  color: 'white',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                  zIndex: 10
-                }}>
+                <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm font-bold z-10">
                   Photo {Math.min(Math.floor(photos.length) + 1, 4)} of 4
                 </div>
               )}
               {/* Countdown or Message Overlay */}
               {isCapturing && (countdown !== null || message) && (
-                <div style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  color: 'white',
-                  padding: '20px',
-                  borderRadius: message ? '15px' : '50%',
-                  width: message ? 'auto' : '150px',
-                  height: message ? 'auto' : '150px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  animation: countdown !== null ? 'pulse 1s infinite' : 'none',
-                  fontSize: message ? '24px' : '72px',
-                  fontWeight: 'bold',
-                  minWidth: message ? '200px' : 'auto'
-                }}>
-                  {message || countdown}
+                <div className={`absolute 
+                  ${message 
+                    ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70' // Keep message with background
+                    : 'top-4 right-4' // Countdown in top right without background
+                  }
+                  text-white flex items-center justify-center
+                  ${message 
+                    ? 'rounded-2xl px-4 py-3 min-w-[160px] md:min-w-[300px]' 
+                    : 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
+                  }`}>
+                  <div className="flex items-center justify-center w-full h-full">
+                    <span className={`
+                      ${message 
+                        ? 'text-xs sm:text-sm md:text-base font-semibold'
+                        : 'text-3xl sm:text-5xl md:text-7xl font-bold animate-pulse leading-none text-black'
+                      }
+                    `}>
+                      {message || countdown}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div style={buttonContainerStyle}>
+          {/* Control Buttons */}
+          <div className="flex flex-wrap justify-center gap-3 p-2">
             <button 
               onClick={startCamera}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#4CAF50'
-              }}
+              className="w-full md:w-auto px-6 py-3 bg-green-500 text-white rounded-full font-semibold 
+                shadow-md hover:shadow-lg transition-all max-w-[160px] md:max-w-none"
             >
               Start Camera
             </button>
             <button 
               onClick={capturePhoto} 
               disabled={isCapturing}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#2196F3'
-              }}
+              className={`w-full md:w-auto px-6 py-3 bg-blue-500 text-white rounded-full font-semibold 
+                shadow-md hover:shadow-lg transition-all max-w-[160px] md:max-w-none
+                ${isCapturing ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {isCapturing ? `Taking photo ${countdown ? countdown : '...'}` : 'Click Photo'}
             </button>
             {capturedPhoto && (
               <button 
                 onClick={downloadPhoto}
-                style={{
-                  ...buttonStyle,
-                  backgroundColor: '#9C27B0'
-                }}
+                className="w-full md:w-auto px-6 py-3 bg-purple-600 text-white rounded-full font-semibold 
+                  shadow-md hover:shadow-lg transition-all max-w-[160px] md:max-w-none"
               >
                 Download Photo
               </button>
@@ -465,36 +339,17 @@ const App = () => {
         </div>
 
         {/* Right side - Photos Section */}
-        <div style={photosSectionStyle}>
-          <canvas id="photo-canvas" style={{ display: 'none' }} />
+        <div className="w-full md:w-80 bg-white rounded-3xl shadow-lg p-4 md:p-6 order-last md:order-none">
+          <canvas id="photo-canvas" className="hidden" />
           {capturedPhoto ? (
             <img 
               src={capturedPhoto} 
               alt="Captured photos" 
-              style={{ 
-                width: '100%',
-                borderRadius: '15px',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                transition: 'transform 0.3s ease',
-                ':hover': {
-                  transform: 'scale(1.02)'
-                }
-              }}
+              className="w-full rounded-2xl shadow-md hover:scale-[1.02] transition-transform duration-300"
             />
           ) : (
-            <div style={{
-              aspectRatio: '4/3',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#64748b',
-              fontSize: '16px',
-              textAlign: 'center',
-              padding: '25px',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '15px',
-              border: '2px dashed #cbd5e1'
-            }}>
+            <div className="aspect-4/3 flex items-center justify-center text-gray-500 text-center p-6 
+              bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300">
               Photos will appear here after capture
             </div>
           )}
