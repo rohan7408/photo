@@ -12,10 +12,13 @@ const App = () => {
   const [capturedPhoto, setCapturedPhoto] = React.useState(null);
   const [isCapturing, setIsCapturing] = React.useState(false);
   const [countdown, setCountdown] = React.useState(null);
-  const [message, setMessage] = React.useState(null);
   const [photos, setPhotos] = React.useState([]);
   const [selectedFilter, setSelectedFilter] = React.useState('normal');
   const [isFrontCamera, setIsFrontCamera] = React.useState(true);
+  const [isFlashing, setIsFlashing] = React.useState(false);
+  const [showFeedback, setShowFeedback] = React.useState(false);
+  const [feedbackStatus, setFeedbackStatus] = React.useState('');
+  const [showToast, setShowToast] = React.useState(false);
 
   const startCamera = React.useCallback(async () => {
     try {
@@ -240,36 +243,32 @@ const App = () => {
     
     // Take 4 photos with 3-second intervals
     for (let i = 0; i < 4; i++) {
-      // Show which photo is being taken
-      setMessage(`Get ready for photo ${i + 1} of 4`);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Show message for 2 seconds
-      
       // Countdown
-      setMessage(null);
       setCountdown(3);
       for (let j = 3; j > 0; j--) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setCountdown(j - 1);
       }
 
+      // Flash effect
+      setIsFlashing(true);
+      setTimeout(() => setIsFlashing(false), 200);
+
       const photo = takePhoto(video, canvas);
       newPhotos.push(photo);
       setPhotos([...newPhotos]); // Update photos array after each capture
       
-      // Wait between photos
+      // Wait between photos if not the last one
       if (i < 3) {
-        setMessage('Great! Next photo coming up...');
         await new Promise(resolve => setTimeout(resolve, 1500));
       }
     }
 
     // Combine all photos
-    setMessage('Processing your photos...');
     const combinedPhoto = await combinePhotos(newPhotos);
     setCapturedPhoto(combinedPhoto);
     setIsCapturing(false);
     setCountdown(null);
-    setMessage(null);
     setPhotos([]); // Clear photos array when done
   };
 
@@ -285,6 +284,40 @@ const App = () => {
     document.body.removeChild(link);
   };
 
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    
+    setFeedbackStatus('sending');
+    
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json'
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setFeedbackStatus('success');
+        e.target.reset();
+        setShowFeedback(false);
+        setShowToast(true);
+        
+        setTimeout(() => {
+          setShowToast(false);
+        }, 3000);
+      } else {
+        setFeedbackStatus('error');
+      }
+    } catch {
+      setFeedbackStatus('error');
+    }
+  };
+
   React.useEffect(() => {
     // Add the keyframes to the document
     const style = document.createElement('style');
@@ -298,6 +331,121 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 p-4 md:p-6">
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 
+          animate-slide-in-right flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          <span className="font-medium">Feedback sent successfully!</span>
+        </div>
+      )}
+
+      {/* Add Feedback Button */}
+      <button
+        onClick={() => setShowFeedback(true)}
+        className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full 
+          shadow-lg hover:bg-blue-600 transition-all z-50"
+      >
+        Feedback
+      </button>
+
+      {/* Feedback Modal */}
+      {showFeedback && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Send Feedback</h2>
+              <button
+                onClick={() => setShowFeedback(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleFeedbackSubmit}>
+              <input 
+                type="hidden" 
+                name="access_key" 
+                value="d3424bba-956d-4b76-bf02-c5883dd97d24"
+              />
+              <input 
+                type="hidden" 
+                name="from_name" 
+                value="Photo Booth Feedback"
+              />
+              <input 
+                type="hidden" 
+                name="subject" 
+                value="New Photo Booth Feedback"
+              />
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    required
+                    placeholder="Your name"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    placeholder="your@email.com"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Message
+                  </label>
+                  <textarea
+                    name="message"
+                    required
+                    rows="4"
+                    placeholder="Your feedback message..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  ></textarea>
+                </div>
+                
+                <button
+                  type="submit"
+                  disabled={feedbackStatus === 'sending'}
+                  className={`w-full py-2 px-4 rounded-lg text-white font-medium transition-all
+                    ${feedbackStatus === 'sending' 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-500 hover:bg-blue-600'}`}
+                >
+                  {feedbackStatus === 'sending' 
+                    ? 'Sending...' 
+                    : feedbackStatus === 'success'
+                    ? 'Sent Successfully!'
+                    : feedbackStatus === 'error'
+                    ? 'Error! Try Again'
+                    : 'Send Feedback'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6">
         {/* Left side - Camera Section */}
         <div className="flex-1 bg-white rounded-3xl shadow-lg p-4 md:p-6 flex flex-col gap-4 md:gap-6 md:max-w-2xl mx-auto">
@@ -337,13 +485,13 @@ const App = () => {
 
           {/* Camera Container */}
           <div className="bg-gray-50 rounded-3xl p-3 md:p-4">
-            <div className="relative w-full pt-[130%] sm:pt-[120%] md:pt-[75%] bg-gray-100 rounded-2xl overflow-hidden max-w-xl mx-auto">
+            <div className="relative w-full aspect-[3/4] md:aspect-[4/3] bg-gray-100 rounded-2xl overflow-hidden max-w-3xl mx-auto">
               <video
                 id="camera-stream"
                 autoPlay
                 playsInline
                 className={`absolute top-0 left-0 w-full h-full object-cover rounded-xl ${
-                    isFrontCamera ? 'scale-x-[-1]' : ''
+                  isFrontCamera ? 'scale-x-[-1]' : ''
                 }`}
               />
               
@@ -351,7 +499,7 @@ const App = () => {
               <button
                 onClick={switchCamera}
                 className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full 
-                  transition-all transform hover:scale-105 md:hidden" // Hide on desktop
+                  transition-all transform hover:scale-105 md:hidden"
               >
                 <svg 
                   xmlns="http://www.w3.org/2000/svg" 
@@ -375,29 +523,20 @@ const App = () => {
                   Photo {Math.min(Math.floor(photos.length) + 1, 4)} of 4
                 </div>
               )}
-              {/* Countdown or Message Overlay */}
-              {isCapturing && (countdown !== null || message) && (
-                <div className={`absolute 
-                  ${message 
-                    ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70' // Keep message with background
-                    : 'top-4 right-4' // Countdown in top right without background
-                  }
-                  text-white flex items-center justify-center
-                  ${message 
-                    ? 'rounded-2xl px-4 py-3 min-w-[160px] md:min-w-[300px]' 
-                    : 'w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32'
-                  }`}>
-                  <div className="flex items-center justify-center w-full h-full">
-                    <span className={`
-                      ${message 
-                        ? 'text-xs sm:text-sm md:text-base font-semibold'
-                        : 'text-3xl sm:text-5xl md:text-7xl font-bold animate-pulse leading-none text-black'
-                      }
-                    `}>
-                      {message || countdown}
-                    </span>
-                  </div>
+
+              {/* Countdown Overlay */}
+              {isCapturing && countdown !== null && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
+                  w-20 h-20 bg-white/80 rounded-full flex items-center justify-center z-20">
+                  <span className="text-4xl font-bold text-black">
+                    {countdown}
+                  </span>
                 </div>
+              )}
+
+              {/* Flash Effect */}
+              {isFlashing && (
+                <div className="absolute inset-0 bg-white z-30 animate-flash" />
               )}
             </div>
           </div>
